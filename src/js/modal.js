@@ -14,6 +14,9 @@ app.addEventListener("click", (e) => {
     let span = e.target.getElementsByTagName("span")[0];
     span.innerHTML = span.innerHTML === "+" ? "-" : "+";
   }
+  if(e.target.tagName === 'SPAN'){
+    e.target.innerHTML = e.target.innerHTML === "+" ? "-" : "+";
+  }
 });
 
 //Modal is closed if you click outside it.
