@@ -2,16 +2,18 @@ import React from 'react';
 import Recipe from './Recipe';
 
 const RecipeList = ({recipes}) => (
-    <div>
-    {recipes.map(
-        (recipe, i) => (
-            <Recipe key={i} name={recipe.name} />
-        ))
-    }
-    <Recipe name="Bacon" />
-    <Recipe name="Apples" />
-    <Recipe name="Rice" />
-    <Recipe name="Noodles" />
+    <div className = "recipeList">
+        {recipes.map(
+            (recipe) => (
+                <Recipe 
+                    key={recipe.id}
+                    index={recipe.id}
+                    name={recipe.name} 
+                    description={recipe.description} 
+                    ingredients={recipe.ingredients} 
+                    />
+            ))
+        }
     </div>
 );
 

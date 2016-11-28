@@ -56,29 +56,42 @@
 
 	var _reactRedux = __webpack_require__(199);
 
-	var _recipes = __webpack_require__(208);
+	var _reducers = __webpack_require__(208);
+
+	var _reducers2 = _interopRequireDefault(_reducers);
+
+	var _recipes = __webpack_require__(209);
 
 	var _recipes2 = _interopRequireDefault(_recipes);
 
-	var _App = __webpack_require__(209);
+	var _AppContainer = __webpack_require__(211);
 
-	var _App2 = _interopRequireDefault(_App);
+	var _AppContainer2 = _interopRequireDefault(_AppContainer);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	__webpack_require__(218);
+	__webpack_require__(225);
 
 	var initialState = {
-	    recipes: [{ id: 0, name: "Apples", description: "Description", ingredients: ["ingr1", "ingr2", "ingr3"] }]
+	    recipes: [{ id: 0, name: "Apples", description: "Description", ingredients: ["ingr1", "ingr2", "ingr3"] }, { id: 1, name: "Noodles", description: "Noodles description", ingredients: ["noodles", "water"] }, { id: 2, name: "Bacon", description: "Bacon description", ingredients: ["bacon", "meat"] }, { id: 3, name: "Pizza", description: "Pizza description", ingredients: ["pizza", "cheese", "ketchup"] }]
 	};
+	if (JSON.parse(localStorage.getItem('recipes')).recipes.length === 0) {
+	    localStorage.setItem('recipes', JSON.stringify(initialState));
+	}
 
-	var store = (0, _redux.createStore)(_recipes2.default, initialState);
+	var store = (0, _redux.createStore)(_reducers2.default, JSON.parse(localStorage.getItem('recipes')));
+	store.subscribe(function () {
+	    localStorage.setItem('recipes', JSON.stringify(store.getState()));
+	});
 
 	(0, _reactDom.render)(_react2.default.createElement(
 	    _reactRedux.Provider,
 	    { store: store },
-	    _react2.default.createElement(_App2.default, null)
+	    _react2.default.createElement(_AppContainer2.default, null)
 	), document.getElementById('root'));
+
+	// Vanilla JavaScript files
+	__webpack_require__(229);
 
 /***/ },
 /* 1 */
@@ -23217,59 +23230,148 @@
 
 /***/ },
 /* 208 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+
+	var _redux = __webpack_require__(178);
+
+	var _recipes = __webpack_require__(209);
+
+	var _recipes2 = _interopRequireDefault(_recipes);
+
+	var _recipeFormStatus = __webpack_require__(210);
+
+	var _recipeFormStatus2 = _interopRequireDefault(_recipeFormStatus);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var recipesBoxApp = (0, _redux.combineReducers)({
+	  recipes: _recipes2.default,
+	  recipeFormStatus: _recipeFormStatus2.default
+	});
+
+	exports.default = recipesBoxApp;
+
+/***/ },
+/* 209 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 	var recipes = function recipes() {
 	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 	  var action = arguments[1];
 
+	  switch (action.type) {
+	    case 'ADD_RECIPE':
+	      return [].concat(_toConsumableArray(state), [{
+	        name: action.name,
+	        description: action.description,
+	        ingredients: action.ingredients,
+	        id: action.id
+	      }]);
+	    case 'EDIT_RECIPE':
+	      var newState = state.slice();
+	      newState.forEach(function (recipe) {
+	        if (recipe.id === action.id) {
+	          recipe.name = action.name, recipe.description = action.description, recipe.ingredients = action.ingredients;
+	        }
+	      });
+	      return newState;
+	    case 'DELETE_RECIPE':
+	      return state.filter(function (recipe) {
+	        return recipe.id != action.id;
+	      });
+	  }
 	  return state;
 	};
 
 	exports.default = recipes;
 
 /***/ },
-/* 209 */
-/***/ function(module, exports, __webpack_require__) {
+/* 210 */
+/***/ function(module, exports) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
-
-	var _react = __webpack_require__(1);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	var _RecipesListContainer = __webpack_require__(210);
-
-	var _RecipesListContainer2 = _interopRequireDefault(_RecipesListContainer);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var App = function App() {
-	    return _react2.default.createElement(
-	        'div',
-	        null,
-	        _react2.default.createElement(
-	            'h1',
-	            null,
-	            'Recipe Box'
-	        ),
-	        _react2.default.createElement(_RecipesListContainer2.default, null)
-	    );
+	var initialState = {
+	  formType: '',
+	  fields: {
+	    index: '',
+	    name: '',
+	    description: '',
+	    ingredients: ''
+	  }
 	};
 
-	exports.default = App;
+	var recipeFormStatus = function recipeFormStatus() {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case 'SET_FORM_STATUS':
+	      return Object.assign({}, state, {
+	        formType: action.status
+	      });
+	    case 'SET_FORM_FIELDS':
+	      return Object.assign({}, state, {
+	        fields: {
+	          index: action.index,
+	          name: action.name,
+	          description: action.description,
+	          ingredients: action.ingredients
+	        }
+	      });
+	    case 'SET_FORM_NAME':
+	      return Object.assign({}, state, {
+	        fields: {
+	          name: action.name,
+	          description: state.fields.description,
+	          index: state.fields.index,
+	          ingredients: state.fields.ingredients
+	        }
+	      });
+	    case 'SET_FORM_DESCRIPTION':
+	      return Object.assign({}, state, {
+	        fields: {
+	          name: state.fields.name,
+	          description: action.description,
+	          index: state.fields.index,
+	          ingredients: state.fields.ingredients
+	        }
+	      });
+	    case 'SET_FORM_INGREDIENTS':
+	      return Object.assign({}, state, {
+	        fields: {
+	          name: state.fields.name,
+	          description: state.fields.description,
+	          index: state.fields.index,
+	          ingredients: action.ingredients
+	        }
+	      });
+
+	  }
+	  return state;
+	};
+
+	exports.default = recipeFormStatus;
 
 /***/ },
-/* 210 */
+/* 211 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23280,92 +23382,124 @@
 
 	var _reactRedux = __webpack_require__(199);
 
-	var _RecipeList = __webpack_require__(211);
+	var _actions = __webpack_require__(212);
 
-	var _RecipeList2 = _interopRequireDefault(_RecipeList);
+	var _App = __webpack_require__(213);
 
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var mapStateToProps = function mapStateToProps(state) {
-	  return { recipes: state.recipes };
-	};
-
-	var RecipesListContainer = (0, _reactRedux.connect)(mapStateToProps)(_RecipeList2.default);
-
-	exports.default = RecipesListContainer;
-
-/***/ },
-/* 211 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	var _react = __webpack_require__(1);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	var _Recipe = __webpack_require__(212);
-
-	var _Recipe2 = _interopRequireDefault(_Recipe);
+	var _App2 = _interopRequireDefault(_App);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var RecipeList = function RecipeList(_ref) {
-	    var recipes = _ref.recipes;
-	    return _react2.default.createElement(
-	        'div',
-	        null,
-	        recipes.map(function (recipe, i) {
-	            return _react2.default.createElement(_Recipe2.default, { key: i, name: recipe.name });
-	        }),
-	        _react2.default.createElement(_Recipe2.default, { name: 'Bacon' }),
-	        _react2.default.createElement(_Recipe2.default, { name: 'Apples' }),
-	        _react2.default.createElement(_Recipe2.default, { name: 'Rice' }),
-	        _react2.default.createElement(_Recipe2.default, { name: 'Noodles' })
-	    );
+	var mapStateToProps = function mapStateToProps() {
+	  return {};
 	};
 
-	exports.default = RecipeList;
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	  return {
+	    onAddClick: function onAddClick() {
+	      dispatch((0, _actions.setFormStatus)("addForm")), dispatch((0, _actions.setFormFields)(-1, "", "", ""));
+	    }
+	  };
+	};
+
+	var AppContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_App2.default);
+
+	exports.default = AppContainer;
 
 /***/ },
 /* 212 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
+	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
-
-	var _react = __webpack_require__(1);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	var _RecipeHeader = __webpack_require__(213);
-
-	var _RecipeHeader2 = _interopRequireDefault(_RecipeHeader);
-
-	var _RecipeDescription = __webpack_require__(214);
-
-	var _RecipeDescription2 = _interopRequireDefault(_RecipeDescription);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var Recipe = function Recipe(_ref) {
-	    var name = _ref.name;
-	    return _react2.default.createElement(
-	        'div',
-	        { className: 'recipe' },
-	        _react2.default.createElement(_RecipeHeader2.default, { name: name }),
-	        _react2.default.createElement(_RecipeDescription2.default, null)
-	    );
+	var nextRecipeId = 3;
+	var addRecipe = exports.addRecipe = function addRecipe(name, description, ingredients) {
+	  nextRecipeId++;
+	  return {
+	    type: "ADD_RECIPE",
+	    name: name,
+	    description: description,
+	    ingredients: ingredients,
+	    id: nextRecipeId
+	  };
 	};
 
-	exports.default = Recipe;
+	var editRecipe = exports.editRecipe = function editRecipe(id, name, description, ingredients) {
+	  return {
+	    type: "EDIT_RECIPE",
+	    id: id,
+	    name: name,
+	    description: description,
+	    ingredients: ingredients
+	  };
+	};
+
+	var deleteRecipe = exports.deleteRecipe = function deleteRecipe(id) {
+	  return {
+	    type: 'DELETE_RECIPE',
+	    id: id
+	  };
+	};
+
+	var fillEditForm = exports.fillEditForm = function fillEditForm(id) {
+	  return {
+	    type: "FILL_EDIT_FORM",
+	    id: id
+	  };
+	};
+
+	var setFormStatus = exports.setFormStatus = function setFormStatus(status) {
+	  return {
+	    type: "SET_FORM_STATUS",
+	    status: status
+	  };
+	};
+
+	var setFormFields = exports.setFormFields = function setFormFields(index, name, description, ingredients) {
+	  if (ingredients) {
+	    ingredients = ingredients.join(',');
+	  }
+	  return {
+	    type: "SET_FORM_FIELDS",
+	    index: index,
+	    name: name,
+	    description: description,
+	    ingredients: ingredients
+	  };
+	};
+
+	var onFormNameChange = exports.onFormNameChange = function onFormNameChange(input) {
+	  return {
+	    type: "SET_FORM_NAME",
+	    name: input
+	  };
+	};
+
+	var onFormDescriptionChange = exports.onFormDescriptionChange = function onFormDescriptionChange(input) {
+	  return {
+	    type: "SET_FORM_DESCRIPTION",
+	    description: input
+	  };
+	};
+
+	var onFormIngredientsChange = exports.onFormIngredientsChange = function onFormIngredientsChange(input) {
+	  return {
+	    type: "SET_FORM_INGREDIENTS",
+	    ingredients: input
+	  };
+	};
+
+	var onFormSubmit = exports.onFormSubmit = function onFormSubmit(id, name, description, formType, ingredients) {
+	  ingredients = ingredients.split(',');
+	  if (formType === "addForm") {
+	    return addRecipe(name, description, ingredients);
+	  } else if (formType === "editForm") {
+	    return editRecipe(id, name, description, ingredients);
+	  }
+	};
 
 /***/ },
 /* 213 */
@@ -23381,23 +23515,37 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
+	var _RecipesListContainer = __webpack_require__(214);
+
+	var _RecipesListContainer2 = _interopRequireDefault(_RecipesListContainer);
+
+	var _RecipeFormContainer = __webpack_require__(223);
+
+	var _RecipeFormContainer2 = _interopRequireDefault(_RecipeFormContainer);
+
+	var _Button = __webpack_require__(219);
+
+	var _Button2 = _interopRequireDefault(_Button);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var RecipeHeader = function RecipeHeader(_ref) {
-	    var name = _ref.name;
+	var App = function App(_ref) {
+	    var onAddClick = _ref.onAddClick;
 	    return _react2.default.createElement(
-	        'h2',
-	        null,
-	        name,
+	        'div',
+	        { id: 'app' },
 	        _react2.default.createElement(
-	            'span',
+	            'h1',
 	            null,
-	            '+'
-	        )
+	            'Recipe Box'
+	        ),
+	        _react2.default.createElement(_Button2.default, { name: 'Add new recipe', className: 'addButton', onClick: onAddClick }),
+	        _react2.default.createElement(_RecipesListContainer2.default, null),
+	        _react2.default.createElement(_RecipeFormContainer2.default, null)
 	    );
 	};
 
-	exports.default = RecipeHeader;
+	exports.default = App;
 
 /***/ },
 /* 214 */
@@ -23406,39 +23554,24 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 
-	var _react = __webpack_require__(1);
+	var _reactRedux = __webpack_require__(199);
 
-	var _react2 = _interopRequireDefault(_react);
+	var _RecipeList = __webpack_require__(215);
 
-	var _Button = __webpack_require__(215);
-
-	var _Button2 = _interopRequireDefault(_Button);
-
-	var _IngredientsList = __webpack_require__(216);
-
-	var _IngredientsList2 = _interopRequireDefault(_IngredientsList);
+	var _RecipeList2 = _interopRequireDefault(_RecipeList);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var RecipeDescription = function RecipeDescription() {
-	    return _react2.default.createElement(
-	        'div',
-	        { className: 'recipeDescription' },
-	        _react2.default.createElement(_IngredientsList2.default, null),
-	        _react2.default.createElement(
-	            'p',
-	            null,
-	            'Description qwe qweqwqwe qwe qwe qwe'
-	        ),
-	        _react2.default.createElement(_Button2.default, { name: 'Edit' }),
-	        _react2.default.createElement(_Button2.default, { name: 'Delete' })
-	    );
+	var mapStateToProps = function mapStateToProps(state) {
+	  return { recipes: state.recipes };
 	};
 
-	exports.default = RecipeDescription;
+	var RecipesListContainer = (0, _reactRedux.connect)(mapStateToProps)(_RecipeList2.default);
+
+	exports.default = RecipesListContainer;
 
 /***/ },
 /* 215 */
@@ -23454,18 +23587,30 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
+	var _Recipe = __webpack_require__(216);
+
+	var _Recipe2 = _interopRequireDefault(_Recipe);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var Button = function Button(_ref) {
-	    var name = _ref.name;
+	var RecipeList = function RecipeList(_ref) {
+	    var recipes = _ref.recipes;
 	    return _react2.default.createElement(
-	        'button',
-	        null,
-	        name
+	        'div',
+	        { className: 'recipeList' },
+	        recipes.map(function (recipe) {
+	            return _react2.default.createElement(_Recipe2.default, {
+	                key: recipe.id,
+	                index: recipe.id,
+	                name: recipe.name,
+	                description: recipe.description,
+	                ingredients: recipe.ingredients
+	            });
+	        })
 	    );
 	};
 
-	exports.default = Button;
+	exports.default = RecipeList;
 
 /***/ },
 /* 216 */
@@ -23481,25 +23626,189 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _Ingredient = __webpack_require__(217);
+	var _RecipeHeader = __webpack_require__(217);
+
+	var _RecipeHeader2 = _interopRequireDefault(_RecipeHeader);
+
+	var _RecipeDescription = __webpack_require__(218);
+
+	var _RecipeDescription2 = _interopRequireDefault(_RecipeDescription);
+
+	var _RecipeDescriptionContainer = __webpack_require__(222);
+
+	var _RecipeDescriptionContainer2 = _interopRequireDefault(_RecipeDescriptionContainer);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var Recipe = function Recipe(_ref) {
+	    var name = _ref.name,
+	        description = _ref.description,
+	        ingredients = _ref.ingredients,
+	        index = _ref.index;
+	    return _react2.default.createElement(
+	        'div',
+	        { className: 'recipe' },
+	        _react2.default.createElement(
+	            'label',
+	            { htmlFor: "toggleDescription-" + index },
+	            _react2.default.createElement(_RecipeHeader2.default, { name: name, index: index })
+	        ),
+	        _react2.default.createElement('input', { type: 'checkbox', id: "toggleDescription-" + index, value: 'checked' }),
+	        _react2.default.createElement(_RecipeDescriptionContainer2.default, { description: description, ingredients: ingredients, name: name, index: index })
+	    );
+	};
+
+	exports.default = Recipe;
+
+/***/ },
+/* 217 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	            value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var RecipeHeader = function RecipeHeader(_ref) {
+	            var name = _ref.name,
+	                index = _ref.index;
+	            return _react2.default.createElement(
+	                        "h2",
+	                        { className: "recipeHeader" },
+	                        name,
+	                        _react2.default.createElement(
+	                                    "span",
+	                                    { className: "recipeMore" },
+	                                    "+"
+	                        )
+	            );
+	};
+
+	exports.default = RecipeHeader;
+
+/***/ },
+/* 218 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _Button = __webpack_require__(219);
+
+	var _Button2 = _interopRequireDefault(_Button);
+
+	var _IngredientsList = __webpack_require__(220);
+
+	var _IngredientsList2 = _interopRequireDefault(_IngredientsList);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var RecipeDescription = function RecipeDescription(_ref) {
+	    var index = _ref.index,
+	        name = _ref.name,
+	        description = _ref.description,
+	        ingredients = _ref.ingredients,
+	        onEditClick = _ref.onEditClick,
+	        onDeleteClick = _ref.onDeleteClick;
+	    return _react2.default.createElement(
+	        'div',
+	        { className: 'recipeDescription' },
+	        _react2.default.createElement(_IngredientsList2.default, { ingredients: ingredients }),
+	        _react2.default.createElement(
+	            'p',
+	            null,
+	            description
+	        ),
+	        _react2.default.createElement(_Button2.default, { className: 'editButton', onClick: function onClick() {
+	                onEditClick(index, name, description, ingredients);
+	            }, name: 'Edit' }),
+	        _react2.default.createElement(_Button2.default, { name: 'Delete', className: 'deleteButton', onClick: function onClick() {
+	                onDeleteClick(index);
+	            } })
+	    );
+	};
+
+	exports.default = RecipeDescription;
+
+/***/ },
+/* 219 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var Button = function Button(_ref) {
+	    var name = _ref.name,
+	        className = _ref.className,
+	        onClick = _ref.onClick;
+	    return _react2.default.createElement(
+	        'button',
+	        { className: className, onClick: onClick },
+	        name
+	    );
+	};
+
+	exports.default = Button;
+
+/***/ },
+/* 220 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _Ingredient = __webpack_require__(221);
 
 	var _Ingredient2 = _interopRequireDefault(_Ingredient);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var IngredientsList = function IngredientsList() {
+	var IngredientsList = function IngredientsList(_ref) {
+	    var _ref$ingredients = _ref.ingredients,
+	        ingredients = _ref$ingredients === undefined ? [] : _ref$ingredients;
 	    return _react2.default.createElement(
 	        'ul',
 	        null,
-	        _react2.default.createElement(_Ingredient2.default, null),
-	        _react2.default.createElement(_Ingredient2.default, null)
+	        ingredients.map(function (ingredient, i) {
+	            return _react2.default.createElement(_Ingredient2.default, { key: i, name: ingredient });
+	        })
 	    );
 	};
 
 	exports.default = IngredientsList;
 
 /***/ },
-/* 217 */
+/* 221 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23514,27 +23823,191 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var Ingredient = function Ingredient() {
+	var Ingredient = function Ingredient(_ref) {
+	  var _ref$name = _ref.name,
+	      name = _ref$name === undefined ? '' : _ref$name;
 	  return _react2.default.createElement(
 	    'li',
 	    null,
-	    'IngredientName'
+	    name
 	  );
 	};
 
 	exports.default = Ingredient;
 
 /***/ },
-/* 218 */
+/* 222 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _reactRedux = __webpack_require__(199);
+
+	var _RecipeDescription = __webpack_require__(218);
+
+	var _RecipeDescription2 = _interopRequireDefault(_RecipeDescription);
+
+	var _actions = __webpack_require__(212);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var mapStateToProps = function mapStateToProps(state, _ref) {
+	  var description = _ref.description,
+	      ingredients = _ref.ingredients,
+	      name = _ref.name,
+	      index = _ref.index;
+
+	  return {
+	    description: description,
+	    ingredients: ingredients,
+	    name: name,
+	    index: index
+	  };
+	};
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	  return {
+	    onEditClick: function onEditClick(index, name, description, ingredients) {
+	      dispatch((0, _actions.setFormStatus)("editForm"));
+	      dispatch((0, _actions.setFormFields)(index, name, description, ingredients));
+	    },
+	    onDeleteClick: function onDeleteClick(id) {
+	      dispatch((0, _actions.deleteRecipe)(id));
+	    }
+	  };
+	};
+
+	var RecipeDescriptionContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_RecipeDescription2.default);
+
+	exports.default = RecipeDescriptionContainer;
+
+/***/ },
+/* 223 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _reactRedux = __webpack_require__(199);
+
+	var _RecipeForm = __webpack_require__(224);
+
+	var _RecipeForm2 = _interopRequireDefault(_RecipeForm);
+
+	var _actions = __webpack_require__(212);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var mapStateToProps = function mapStateToProps(state) {
+	  return state.recipeFormStatus;
+	};
+
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	  return {
+	    onFormSubmit: function onFormSubmit(index, name, description, formType, ingredients) {
+	      dispatch((0, _actions.onFormSubmit)(index, name, description, formType, ingredients));
+	    },
+	    onNameChange: function onNameChange(name) {
+	      dispatch((0, _actions.onFormNameChange)(name));
+	    },
+	    onDescriptionChange: function onDescriptionChange(description) {
+	      dispatch((0, _actions.onFormDescriptionChange)(description));
+	    },
+	    onIngredientsChange: function onIngredientsChange(ingredients) {
+	      dispatch((0, _actions.onFormIngredientsChange)(ingredients));
+	    }
+	  };
+	};
+
+	var RecipeFormContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_RecipeForm2.default);
+
+	exports.default = RecipeFormContainer;
+
+/***/ },
+/* 224 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _Button = __webpack_require__(219);
+
+	var _Button2 = _interopRequireDefault(_Button);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var RecipeForm = function RecipeForm(_ref) {
+	  var fields = _ref.fields,
+	      formType = _ref.formType,
+	      onNameChange = _ref.onNameChange,
+	      onDescriptionChange = _ref.onDescriptionChange,
+	      onIngredientsChange = _ref.onIngredientsChange,
+	      onFormSubmit = _ref.onFormSubmit;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'recipeFormContainer', id: 'recipeFormContainer' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'recipeForm' },
+	      _react2.default.createElement(
+	        'label',
+	        { htmlFor: 'recipeName' },
+	        'Recipe name:'
+	      ),
+	      _react2.default.createElement('input', { type: 'text', name: 'recipeName', value: fields.name, onChange: function onChange(event) {
+	          onNameChange(event.target.value);
+	        } }),
+	      _react2.default.createElement(
+	        'label',
+	        { htmlFor: 'recipeDescription' },
+	        'Recipe Description'
+	      ),
+	      _react2.default.createElement('textarea', { value: fields.description, rows: '5', onChange: function onChange(event) {
+	          onDescriptionChange(event.target.value);
+	        } }),
+	      _react2.default.createElement(
+	        'label',
+	        null,
+	        'Ingredients:'
+	      ),
+	      _react2.default.createElement('input', { type: 'text', name: 'recipeIngredients', placeholder: 'Enter Ingredients, separated by commas.', value: fields.ingredients,
+	        onChange: function onChange(event) {
+	          onIngredientsChange(event.target.value);
+	        }
+	      }),
+	      _react2.default.createElement(_Button2.default, { onClick: function onClick() {
+	          onFormSubmit(fields.index, fields.name, fields.description, formType, fields.ingredients);
+	        }, name: 'Save' })
+	    )
+	  );
+	};
+
+	exports.default = RecipeForm;
+
+/***/ },
+/* 225 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(219);
+	var content = __webpack_require__(226);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(221)(content, {});
+	var update = __webpack_require__(228)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -23551,21 +24024,21 @@
 	}
 
 /***/ },
-/* 219 */
+/* 226 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(220)();
+	exports = module.exports = __webpack_require__(227)();
 	// imports
 
 
 	// module
-	exports.push([module.id, "html {\n  background-color: #3B4A6B;\n  color: white;\n  font-family: sans-serif; }\n\nbody, p, ul, h2 {\n  margin: 0; }\n\nh1 {\n  margin: 0 0 20px 0;\n  padding-top: 20px;\n  text-align: center; }\n\nh2 {\n  curosr: pointer;\n  padding: 10px; }\n  h2 span {\n    display: inline-block;\n    float: right;\n    margin-right: 10px; }\n\n#root {\n  max-width: 800px;\n  background-color: #22B2DA;\n  margin: 0 auto; }\n\n.recipe {\n  background-color: #F23557;\n  border-bottom: 2px solid #F0D43A; }\n  .recipe:first-child {\n    border-top: 2px solid #F0D43A; }\n\n.recipe h2 {\n  cursor: pointer; }\n\n.recipe .recipeDescription {\n  background-color: #22B2DA; }\n", ""]);
+	exports.push([module.id, "html {\n  background-color: white;\n  color: #424242;\n  font-family: sans-serif; }\n\nbody, p, ul, h2 {\n  margin: 0; }\n\nh1 {\n  margin: 0 0 20px 0;\n  padding-top: 20px;\n  text-align: center; }\n\n.recipeDescription, input[type=\"checkbox\"] {\n  display: none; }\n\nh2 {\n  curosr: pointer;\n  padding: 10px; }\n  h2 span {\n    display: inline-block;\n    float: right;\n    margin-right: 10px; }\n\nbutton {\n  border: none;\n  box-sizing: border-box;\n  background-color: #424242;\n  width: 100%;\n  height: 40px;\n  font-size: 25px;\n  color: #DF5333;\n  text-shadow: 1px 1px 2px #424242; }\n  button:focus {\n    outline: none; }\n  button:hover {\n    background-color: rgba(66, 66, 66, 0.9); }\n\ninput, textarea {\n  border: none;\n  color: #424242;\n  font-size: 20px;\n  background-color: #DF5333;\n  border-radius: 3px; }\n  input:focus, textarea:focus {\n    outline: none; }\n\n#root {\n  max-width: 800px;\n  margin: 0 auto;\n  background-color: white; }\n\n.recipe {\n  background-color: #DF5333;\n  border-bottom: 2px solid #424242; }\n  .recipe:first-child {\n    border-top: 2px solid #DF5333; }\n\n.recipe h2 {\n  cursor: pointer; }\n\n.recipe .recipeDescription {\n  background-color: #FFAF9B; }\n  .recipe .recipeDescription ul {\n    border-top: 2px solid #424242; }\n\ninput[type=\"checkbox\"]:checked ~ .recipeDescription {\n  display: block; }\n\n.recipeFormContainer {\n  display: none;\n  position: absolute;\n  top: 0;\n  left: 0;\n  height: 100vh;\n  width: 100vw;\n  background-color: rgba(0, 0, 0, 0.5); }\n  .recipeFormContainer label {\n    display: block; }\n\n.recipeForm {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  margin: 0 auto;\n  width: 95%;\n  max-width: 500px;\n  background-color: #FFAF9B; }\n  .recipeForm label {\n    font-size: 25px;\n    margin: 5px; }\n  .recipeForm textarea, .recipeForm input {\n    width: 100%;\n    box-sizing: border-box;\n    padding: 5px; }\n\n.recipeDescription button {\n  width: 50%;\n  margin-bottom: 0; }\n  .recipeDescription button:last-child {\n    border-left: 3px solid #DF5333; }\n", ""]);
 
 	// exports
 
 
 /***/ },
-/* 220 */
+/* 227 */
 /***/ function(module, exports) {
 
 	/*
@@ -23621,7 +24094,7 @@
 
 
 /***/ },
-/* 221 */
+/* 228 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -23871,6 +24344,45 @@
 			URL.revokeObjectURL(oldSrc);
 	}
 
+
+/***/ },
+/* 229 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	var recipeFormContainer = document.getElementById("recipeFormContainer");
+	var app = document.getElementById('app');
+	var openModalWindow = function openModalWindow() {
+	  recipeFormContainer.style.display = "block";
+	};
+
+	// Open modal if click on add or edit button
+	app.addEventListener("click", function (e) {
+	  if (e.target.className === 'editButton' || e.target.className === 'addButton') {
+	    openModalWindow();
+	  }
+	  //Toggles + and - on recipe expand
+	  if (e.target.className === 'recipeHeader') {
+	    var span = e.target.getElementsByTagName("span")[0];
+	    span.innerHTML = span.innerHTML === "+" ? "-" : "+";
+	  }
+	});
+
+	//Modal is closed if you click outside it.
+	if (recipeFormContainer) {
+	  recipeFormContainer.addEventListener("click", function (e) {
+	    if (e.target === recipeFormContainer) {
+	      e.target.style.display = "none";
+	    }
+	    //Closes modal when Save button is clicked
+	    if (e.target.tagName === "BUTTON" && e.target.innerHTML === "Save") {
+	      recipeFormContainer.style.display = "none";
+	    }
+	  });
+	} else {
+	  console.log("recipeFormContainer error/not found");
+	}
 
 /***/ }
 /******/ ]);
