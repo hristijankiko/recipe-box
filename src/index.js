@@ -15,7 +15,7 @@ const initialState = {
         {id: 3, name: "Pizza", description: "Pizza description", ingredients: ["pizza", "cheese", "ketchup"]}
     ]
 };
-if(JSON.parse(localStorage.getItem('recipes')).recipes.length === 0){
+if(!JSON.parse(localStorage.getItem('recipes')) || JSON.parse(localStorage.getItem('recipes')).recipes.length === 0){
     localStorage.setItem('recipes', JSON.stringify(initialState));
 }
 

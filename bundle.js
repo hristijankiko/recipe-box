@@ -75,7 +75,7 @@
 	var initialState = {
 	    recipes: [{ id: 0, name: "Apples", description: "Description", ingredients: ["ingr1", "ingr2", "ingr3"] }, { id: 1, name: "Noodles", description: "Noodles description", ingredients: ["noodles", "water"] }, { id: 2, name: "Bacon", description: "Bacon description", ingredients: ["bacon", "meat"] }, { id: 3, name: "Pizza", description: "Pizza description", ingredients: ["pizza", "cheese", "ketchup"] }]
 	};
-	if (JSON.parse(localStorage.getItem('recipes')).recipes.length === 0) {
+	if (!JSON.parse(localStorage.getItem('recipes')) || JSON.parse(localStorage.getItem('recipes')).recipes.length === 0) {
 	    localStorage.setItem('recipes', JSON.stringify(initialState));
 	}
 
@@ -3242,30 +3242,38 @@
 	// Set.prototype.keys
 	Set.prototype != null && typeof Set.prototype.keys === 'function' && isNative(Set.prototype.keys);
 
+	var setItem;
+	var getItem;
+	var removeItem;
+	var getItemIDs;
+	var addRoot;
+	var removeRoot;
+	var getRootIDs;
+
 	if (canUseCollections) {
 	  var itemMap = new Map();
 	  var rootIDSet = new Set();
 
-	  var setItem = function (id, item) {
+	  setItem = function (id, item) {
 	    itemMap.set(id, item);
 	  };
-	  var getItem = function (id) {
+	  getItem = function (id) {
 	    return itemMap.get(id);
 	  };
-	  var removeItem = function (id) {
+	  removeItem = function (id) {
 	    itemMap['delete'](id);
 	  };
-	  var getItemIDs = function () {
+	  getItemIDs = function () {
 	    return Array.from(itemMap.keys());
 	  };
 
-	  var addRoot = function (id) {
+	  addRoot = function (id) {
 	    rootIDSet.add(id);
 	  };
-	  var removeRoot = function (id) {
+	  removeRoot = function (id) {
 	    rootIDSet['delete'](id);
 	  };
-	  var getRootIDs = function () {
+	  getRootIDs = function () {
 	    return Array.from(rootIDSet.keys());
 	  };
 	} else {
@@ -3281,31 +3289,31 @@
 	    return parseInt(key.substr(1), 10);
 	  };
 
-	  var setItem = function (id, item) {
+	  setItem = function (id, item) {
 	    var key = getKeyFromID(id);
 	    itemByKey[key] = item;
 	  };
-	  var getItem = function (id) {
+	  getItem = function (id) {
 	    var key = getKeyFromID(id);
 	    return itemByKey[key];
 	  };
-	  var removeItem = function (id) {
+	  removeItem = function (id) {
 	    var key = getKeyFromID(id);
 	    delete itemByKey[key];
 	  };
-	  var getItemIDs = function () {
+	  getItemIDs = function () {
 	    return Object.keys(itemByKey).map(getIDFromKey);
 	  };
 
-	  var addRoot = function (id) {
+	  addRoot = function (id) {
 	    var key = getKeyFromID(id);
 	    rootByKey[key] = true;
 	  };
-	  var removeRoot = function (id) {
+	  removeRoot = function (id) {
 	    var key = getKeyFromID(id);
 	    delete rootByKey[key];
 	  };
-	  var getRootIDs = function () {
+	  getRootIDs = function () {
 	    return Object.keys(rootByKey).map(getIDFromKey);
 	  };
 	}
@@ -4086,7 +4094,7 @@
 
 	'use strict';
 
-	module.exports = '15.4.0';
+	module.exports = '15.4.1';
 
 /***/ },
 /* 31 */
@@ -5491,6 +5499,28 @@
 	  return '.' + inst._rootNodeID;
 	};
 
+	function isInteractive(tag) {
+	  return tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea';
+	}
+
+	function shouldPreventMouseEvent(name, type, props) {
+	  switch (name) {
+	    case 'onClick':
+	    case 'onClickCapture':
+	    case 'onDoubleClick':
+	    case 'onDoubleClickCapture':
+	    case 'onMouseDown':
+	    case 'onMouseDownCapture':
+	    case 'onMouseMove':
+	    case 'onMouseMoveCapture':
+	    case 'onMouseUp':
+	    case 'onMouseUpCapture':
+	      return !!(props.disabled && isInteractive(type));
+	    default:
+	      return false;
+	  }
+	}
+
 	/**
 	 * This is a unified interface for event plugins to be installed and configured.
 	 *
@@ -5559,7 +5589,12 @@
 	   * @return {?function} The stored callback.
 	   */
 	  getListener: function (inst, registrationName) {
+	    // TODO: shouldPreventMouseEvent is DOM-specific and definitely should not
+	    // live here; needs to be moved to a better place soon
 	    var bankForRegistrationName = listenerBank[registrationName];
+	    if (shouldPreventMouseEvent(registrationName, inst._currentElement.type, inst._currentElement.props)) {
+	      return null;
+	    }
 	    var key = getDictionaryKey(inst);
 	    return bankForRegistrationName && bankForRegistrationName[key];
 	  },
@@ -19649,18 +19684,6 @@
 	  return tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea';
 	}
 
-	function shouldPreventMouseEvent(inst) {
-	  if (inst) {
-	    var disabled = inst._currentElement && inst._currentElement.props.disabled;
-
-	    if (disabled) {
-	      return isInteractive(inst._tag);
-	    }
-	  }
-
-	  return false;
-	}
-
 	var SimpleEventPlugin = {
 
 	  eventTypes: eventTypes,
@@ -19731,10 +19754,7 @@
 	      case 'topMouseDown':
 	      case 'topMouseMove':
 	      case 'topMouseUp':
-	        // Disabled elements should not respond to mouse events
-	        if (shouldPreventMouseEvent(targetInst)) {
-	          return null;
-	        }
+	      // TODO: Disabled elements should not respond to mouse events
 	      /* falls through */
 	      case 'topMouseOut':
 	      case 'topMouseOver':
@@ -21096,7 +21116,7 @@
 
 	'use strict';
 
-	module.exports = '15.4.0';
+	module.exports = '15.4.1';
 
 /***/ },
 /* 172 */
